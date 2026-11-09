@@ -36,6 +36,10 @@ LANE_WIDTH = ROAD_WIDTH / LANE_COUNT
 PLAYER_Y = HEIGHT - 135
 CAR_W, CAR_H = 62, 105
 
+BOOST_COLOR = (0, 255, 255)
+BOOST_PAD_WIDTH = 75
+BOOST_PAD_HEIGHT = 18
+
 
 def lane_center(lane):
     return ROAD_LEFT + LANE_WIDTH * (lane + 0.5)
@@ -52,49 +56,142 @@ def draw_glow_line(surface, color, start, end, width=3):
     pygame.draw.line(surface, color, start, end, width)
 
 
+
 def draw_car(surface, x, y, color, player=False):
-    """Draw a simple sports car from a top-down view."""
     x, y = int(x), int(y)
 
-    # Glow underneath the car
-    glow = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)  # cspell:ignore SRCALPHA
+    # Neon glow underneath the car
+    glow = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+
     pygame.draw.ellipse(
-        glow, (*color, 65),
-        (x - CAR_W // 2 - 12, y + 8, CAR_W + 24, CAR_H - 5)
+        glow,
+        (*color, 65),
+        (x - 48, y + 5, 96, 110)
     )
-    surface.blit(glow, (0, 0))  # cspell:ignore blit
 
-    # Wheels
-    wheel_color = (5, 7, 12)
-    for wheel_x in (x - CAR_W // 2 - 4, x + CAR_W // 2 - 3):
-        pygame.draw.rect(surface, wheel_color,
-                         (wheel_x, y + 18, 8, 25), border_radius=3)
-        pygame.draw.rect(surface, wheel_color,
-                         (wheel_x, y + 65, 8, 25), border_radius=3)
+    surface.blit(glow, (0, 0))
 
-    # Main body
-    body = pygame.Rect(x - CAR_W // 2, y, CAR_W, CAR_H)
-    pygame.draw.rect(surface, color, body, border_radius=17)
-    pygame.draw.rect(surface, (175, 225, 255), body, 2, border_radius=17)
+    # Racing wheels
+    wheel_color = (2, 3, 9)
 
-    # Front hood and windshield
-    pygame.draw.polygon(surface, tuple(min(255, c + 35) for c in color), [
-        (x - 23, y + 12), (x + 23, y + 12),
-        (x + 19, y + 39), (x - 19, y + 39)
-    ])
-    pygame.draw.rect(surface, (4, 13, 27),
-                     (x - 20, y + 42, 40, 29), border_radius=7)
-    pygame.draw.rect(surface, (10, 25, 42),
-                     (x - 17, y + 75, 34, 12), border_radius=5)
+    for wx in [-1, 1]:
+        for wy in [22, 72]:
+            pygame.draw.rect(
+                surface,
+                wheel_color,
+                (x + wx * 31 - 4, y + wy, 9, 25),
+                border_radius=4
+            )
 
-    # Lights
-    pygame.draw.rect(surface, CYAN, (x - 23, y + 4, 14, 5), border_radius=2)
-    pygame.draw.rect(surface, CYAN, (x + 9, y + 4, 14, 5), border_radius=2)
-    pygame.draw.rect(surface, RED, (x - 23, y + 94, 14, 5), border_radius=2)
-    pygame.draw.rect(surface, RED, (x + 9, y + 94, 14, 5), border_radius=2)
+    # Main aerodynamic sports car body
+    pygame.draw.polygon(
+        surface,
+        color,
+        [
+            (x, y),
+            (x + 23, y + 13),
+            (x + 29, y + 38),
+            (x + 30, y + 79),
+            (x + 21, y + 101),
+            (x, y + 108),
+            (x - 21, y + 101),
+            (x - 30, y + 79),
+            (x - 29, y + 38),
+            (x - 23, y + 13)
+        ]
+    )
 
+    # Neon body outline
+    pygame.draw.polygon(
+        surface,
+        (170, 225, 255),
+        [
+            (x, y),
+            (x + 23, y + 13),
+            (x + 29, y + 38),
+            (x + 30, y + 79),
+            (x + 21, y + 101),
+            (x, y + 108),
+            (x - 21, y + 101),
+            (x - 30, y + 79),
+            (x - 29, y + 38),
+            (x - 23, y + 13)
+        ],
+        2
+    )
+
+    # Front windshield
+    pygame.draw.polygon(
+        surface,
+        (4, 13, 28),
+        [
+            (x - 20, y + 24),
+            (x + 20, y + 24),
+            (x + 17, y + 47),
+            (x - 17, y + 47)
+        ]
+    )
+
+    # Rear windshield
+    pygame.draw.polygon(
+        surface,
+        (5, 17, 34),
+        [
+            (x - 17, y + 65),
+            (x + 17, y + 65),
+            (x + 19, y + 84),
+            (x - 19, y + 84)
+        ]
+    )
+
+    # Central racing stripe
+    pygame.draw.line(
+        surface,
+        (190, 230, 255),
+        (x, y + 13),
+        (x, y + 96),
+        2
+    )
+
+    # Blue headlights
+    pygame.draw.rect(
+        surface,
+        CYAN,
+        (x - 22, y + 5, 13, 5),
+        border_radius=3
+    )
+
+    pygame.draw.rect(
+        surface,
+        CYAN,
+        (x + 9, y + 5, 13, 5),
+        border_radius=3
+    )
+
+    # Red rear lights
+    pygame.draw.rect(
+        surface,
+        RED,
+        (x - 22, y + 99, 13, 5),
+        border_radius=3
+    )
+
+    pygame.draw.rect(
+        surface,
+        RED,
+        (x + 9, y + 99, 13, 5),
+        border_radius=3
+    )
+
+    # Player car indicator
     if player:
-        pygame.draw.line(surface, WHITE, (x, y + 15), (x, y + 30), 2)
+        pygame.draw.circle(
+            surface,
+            WHITE,
+            (x, y + 55),
+            3
+        )
+
 
 
 
