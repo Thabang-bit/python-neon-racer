@@ -314,6 +314,41 @@ def draw_hud(score, speed, boost_active):
     boost_color = YELLOW if boost_active else CYAN
     boost_text = SMALL_FONT.render(boost_label, True, boost_color)
     screen.blit(boost_text, (25, 60))
+    
+
+def draw_boost_pad(x, y):
+    x = int(x)
+    y = int(y)
+
+    glow = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+
+    pygame.draw.rect(
+        glow,
+        (0, 255, 255, 45),
+        (x - 45, y - 8, 90, 35),
+        border_radius=8
+    )
+
+    screen.blit(glow, (0, 0))
+
+    pygame.draw.rect(
+        screen,
+        BOOST_COLOR,
+        (x - BOOST_PAD_WIDTH // 2,
+         y,
+         BOOST_PAD_WIDTH,
+         BOOST_PAD_HEIGHT),
+        border_radius=5
+    )
+
+    pygame.draw.line(
+        screen,
+        WHITE,
+        (x - 25, y + 9),
+        (x + 25, y + 9),
+        2
+    )
+    
 
 
 def reset_game():
@@ -326,6 +361,8 @@ def reset_game():
         "spawn_timer": 0,
         "boost_timer": 0,
         "game_over": False,
+        "boost_pads": [],
+        "boost_spawn_timer": 0,
     }
 
 
