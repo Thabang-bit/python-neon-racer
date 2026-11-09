@@ -97,50 +97,105 @@ def draw_car(surface, x, y, color, player=False):
         pygame.draw.line(surface, WHITE, (x, y + 15), (x, y + 30), 2)
 
 
+
 def draw_background(offset):
-    screen.fill(BLACK)
+    screen.fill((3, 4, 15))
 
-    # Distant city lights
-    for i in range(34):
-        x = (i * 83 + 19) % WIDTH
-        h = 35 + (i * 29) % 125
-        y = 90 + (i * 17) % 90
-        color = (12, 35, 60) if i % 2 else (48, 34, 13)
-        pygame.draw.rect(screen, color, (x, y, 24, h))
-        for wy in range(y + 8, y + h - 5, 17):
-            pygame.draw.rect(screen, (20, 105, 165), (x + 6, wy, 4, 6))
+    # Futuristic city buildings
+    for i in range(40):
+        x = (i * 83) % WIDTH
+        building_height = 50 + (i * 31) % 120
+        y = 145 - building_height
 
-    # Road
-    pygame.draw.polygon(screen, ROAD, [
-        (ROAD_LEFT, 145), (ROAD_RIGHT, 145),
-        (WIDTH - 30, HEIGHT), (30, HEIGHT)
-    ])
+        pygame.draw.rect(
+            screen,
+            (9, 17, 39),
+            (x, y, 45, building_height)
+        )
 
-    # Road edge neon strips
-    draw_glow_line(screen, BLUE, (ROAD_LEFT, 145), (30, HEIGHT), 4)
-    draw_glow_line(screen, YELLOW, (ROAD_RIGHT, 145), (WIDTH - 30, HEIGHT), 4)
+        # Neon building windows
+        for wy in range(y + 10, 145, 20):
+            pygame.draw.rect(
+                screen,
+                (0, 90, 150),
+                (x + 8, wy, 5, 8)
+            )
 
-    # Perspective lane markings
-    for lane_line in (1, 2):
-        top_x = ROAD_LEFT + ROAD_WIDTH * lane_line / 3
-        bottom_x = 30 + (WIDTH - 60) * lane_line / 3
-        for segment in range(12):
-            y1 = 155 + segment * 55 + (offset % 55)
-            y2 = y1 + 29
+    # Dark futuristic highway
+    pygame.draw.polygon(
+        screen,
+        (12, 16, 29),
+        [
+            (170, 145),
+            (730, 145),
+            (870, HEIGHT),
+            (30, HEIGHT)
+        ]
+    )
+
+    # Glowing road barriers
+    for width, alpha in [(15, 25), (8, 60), (3, 255)]:
+        glow = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+
+        pygame.draw.line(
+            glow,
+            (0, 160, 255, alpha),
+            (170, 145),
+            (30, HEIGHT),
+            width
+        )
+
+        pygame.draw.line(
+            glow,
+            (255, 190, 20, alpha),
+            (730, 145),
+            (870, HEIGHT),
+            width
+        )
+
+        screen.blit(glow, (0, 0))
+
+    # Animated lane markings
+    for lane in range(1, 3):
+        top_x = 170 + (560 / 3) * lane
+        bottom_x = 30 + (840 / 3) * lane
+
+        for i in range(12):
+            y1 = 150 + i * 55 + (offset % 55)
+            y2 = y1 + 28
+
             if y1 < HEIGHT:
-                progress1 = (y1 - 145) / (HEIGHT - 145)
-                progress2 = (y2 - 145) / (HEIGHT - 145)
-                x1 = ROAD_LEFT + (bottom_x - ROAD_LEFT) * progress1
-                x2 = ROAD_LEFT + (bottom_x - ROAD_LEFT) * progress2
-                pygame.draw.line(screen, (210, 235, 255),
-                                 (int(x1), int(y1)), (int(x2), int(y2)), 5)
+                p1 = (y1 - 145) / (HEIGHT - 145)
+                p2 = (y2 - 145) / (HEIGHT - 145)
 
-    # Road texture streaks
-    for i in range(25):
-        x = 190 + (i * 47) % 520
-        y = (i * 67 + int(offset * 2)) % HEIGHT
-        pygame.draw.line(screen, (24, 34, 48),
-                         (x, y), (x - 8, min(HEIGHT, y + 32)), 2)
+                x1 = 170 + (bottom_x - 170) * p1
+                x2 = 170 + (bottom_x - 170) * p2
+
+                pygame.draw.line(
+                    screen,
+                    (100, 190, 255),
+                    (int(x1), int(y1)),
+                    (int(x2), int(y2)),
+                    4
+                )
+
+    # Neon road lights
+    for i in range(18):
+        y = (i * 45 + int(offset * 2)) % HEIGHT
+
+        pygame.draw.circle(
+            screen,
+            (0, 160, 255),
+            (65, y),
+            3
+        )
+
+        pygame.draw.circle(
+            screen,
+            (255, 190, 30),
+            (835, y),
+            3
+        )
 
 
 def draw_hud(score, speed, boost_active):
